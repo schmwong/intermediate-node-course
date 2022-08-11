@@ -26,6 +26,26 @@ app.listen(port, () => {
   console.log(`server is listening on port:${port}`);
 });
 
+// Refactor code by defining a function to handle responses returned by all routes
+function sendResponse(res, err, data) {
+  if (err) {
+    res.json({
+      success: false,
+      message: err,
+    });
+  } else if (!data) {
+    res.json({
+      success: false,
+      message: "Not Found",
+    });
+  } else {
+    res.json({
+      success: true,
+      data: data,
+    });
+  }
+}
+
 // "POST" route is different than the others because
 // mongoDB automatically creates an ID for each document when it is created
 // CREATE
@@ -38,19 +58,16 @@ app.post("/users", (req, res) => {
   The next argument is a callback function, which handles the response (res) from the database.
   */
   User.create(
-    {
-      name: req.body.newData.name,
-      email: req.body.newData.email,
-      password: req.body.newData.password,
-    },
+    // {
+    //   name: req.body.newData.name,
+    //   email: req.body.newData.email,
+    //   password: req.body.newData.password,
+    // }
+
+    // Use spread syntax
+    { ...req.body.newData },
     (err, data) => {
-      if (err) {
-        res.json({ success: false, message: err });
-      } else if (!data) {
-        res.json({ success: false, message: "Not Found" });
-      } else {
-        res.json({ success: true, data: data });
-      }
+      sendResponse(res, err, data);
     }
   );
 });
@@ -63,22 +80,7 @@ app
   .get((req, res) => {
     // User.findById()
     User.findById(req.params.id, (err, data) => {
-      if (err) {
-        res.json({
-          success: false,
-          message: err,
-        });
-      } else if (!data) {
-        res.json({
-          success: false,
-          message: "Not Found",
-        });
-      } else {
-        res.json({
-          success: true,
-          data: data,
-        });
-      }
+      sendResponse(res, err, data);
     });
   })
   // UPDATE
@@ -86,31 +88,12 @@ app
     // User.findByIdAndUpdate()
     User.findByIdAndUpdate(
       req.params.id,
-      {
-        name: req.body.newData.name,
-        email: req.body.newData.email,
-        password: req.body.newData.password,
-      },
+      { ...req.body.newData },
       {
         new: true,
       },
       (err, data) => {
-        if (err) {
-          res.json({
-            success: false,
-            message: err,
-          });
-        } else if (!data) {
-          res.json({
-            success: false,
-            message: "Not Found",
-          });
-        } else {
-          res.json({
-            success: true,
-            data: data,
-          });
-        }
+        sendResponse(res, err, data);
       }
     );
   })
@@ -118,21 +101,6 @@ app
   .delete((req, res) => {
     // User.findByIdAndDelete()
     User.findByIdAndDelete(req.params.id, (err, data) => {
-      if (err) {
-        res.json({
-          success: false,
-          message: err,
-        });
-      } else if (!data) {
-        res.json({
-          success: false,
-          message: "Not Found",
-        });
-      } else {
-        res.json({
-          success: true,
-          data: data,
-        });
-      }
+      sendResponse(res, err, data);
     });
   });
